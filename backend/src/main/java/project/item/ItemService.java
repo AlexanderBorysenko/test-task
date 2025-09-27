@@ -7,11 +7,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
+import project.item.messaging.ItemMessagingService;
+import project.item.messaging.dto.ItemProcessingRequest;
 
 @Service
 @RequiredArgsConstructor
 public class ItemService {
     private final ItemRepository itemRepository;
+    private final ItemMessagingService itemMessagingService;
 
     @Transactional(readOnly = true)
     public List<Item> getAllItems() {
@@ -21,7 +24,13 @@ public class ItemService {
     @Transactional
     public Item createItem() {
         Item item = new Item();
-        return itemRepository.save(item);
+
+        Item itemFromRepository = itemRepository.save(item);
+
+        itemMessagingService.sendProcessingRequest(
+                new ItemProcessingRequest(itemFromRepository.getId(), itemFromRepository.getStatus()));
+
+        return itemFromRepository;
     }
 
     @Transactional

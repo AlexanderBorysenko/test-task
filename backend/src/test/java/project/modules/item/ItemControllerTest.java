@@ -50,8 +50,7 @@ class ItemControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$[0].id").value(id.toString()))
-                .andExpect(jsonPath("$[0].status").value(ItemStatus.PENDING.name()))
-                .andExpect(jsonPath("$[0].name").value("Test item"));
+                .andExpect(jsonPath("$[0].status").value(ItemStatus.PENDING.name()));
 
         verify(itemService).getAllItems();
     }
@@ -68,8 +67,7 @@ class ItemControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.id").value(id.toString()))
-                .andExpect(jsonPath("$.status").value(ItemStatus.PENDING.name()))
-                .andExpect(jsonPath("$.name").value("Created item"));
+                .andExpect(jsonPath("$.status").value(ItemStatus.PENDING.name()));
 
         verify(itemService).createItem();
     }

@@ -22,8 +22,8 @@ services:
       - "15672:15672" # UI
       - "5672:5672" # AMQP
     environment:
-      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
-      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
+      RABBITMQ_USER: ${RABBITMQ_USER}
+      RABBITMQ_PASS: ${RABBITMQ_PASS}
     healthcheck:
       test: [ "CMD", "rabbitmq-diagnostics", "ping" ]
       interval: 10s
@@ -37,12 +37,12 @@ services:
       dockerfile: Dockerfile
     environment:
       SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
-      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
-      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
-      SPRING_RABBITMQ_HOST: ${SPRING_RABBITMQ_HOST}
-      SPRING_RABBITMQ_PORT: ${SPRING_RABBITMQ_PORT}
-      SPRING_RABBITMQ_USERNAME: ${SPRING_RABBITMQ_USERNAME}
-      SPRING_RABBITMQ_PASSWORD: ${SPRING_RABBITMQ_PASSWORD}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      RABBITMQ_HOST: ${RABBITMQ_HOST}
+      RABBITMQ_PORT: ${RABBITMQ_PORT}
+      RABBITMQ_USERNAME: ${RABBITMQ_USER}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASS}
     depends_on:
       database:
         condition: service_healthy
@@ -57,29 +57,24 @@ services:
       context: ./worker
       dockerfile: Dockerfile
     environment:
-      RABBITMQ_HOST: rabbitmq
-      RABBITMQ_PORT: 5672
-      RABBITMQ_USERNAME: guest
-      RABBITMQ_PASSWORD: guest
-      REQUEST_QUEUE: item.processing.request
-      RESPONSE_QUEUE: item.processing.response
+      RABBITMQ_HOST: ${RABBITMQ_HOST}
+      RABBITMQ_PORT: ${RABBITMQ_PORT}
+      RABBITMQ_USERNAME: ${RABBITMQ_USER}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASS}
     depends_on:
       rabbitmq:
         condition: service_healthy
     networks: [ app-net ]
-    deploy:
-      replicas: 1
-
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    depends_on:
-      backend:
-        condition: service_started
-    ports:
-      - "80:80"
-    networks: [ app-net ]
+  # frontend:
+  #   build:
+  #     context: ./frontend
+  #     dockerfile: Dockerfile
+  #   depends_on:
+  #     backend:
+  #       condition: service_started
+  #   ports:
+  #     - "80:80"
+  #   networks: [ app-net ]
 
 volumes:
   pgdata:
