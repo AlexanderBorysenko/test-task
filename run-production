@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+usage() {
+    cat <<EOF
+Usage: $(basename "$0") [workers] [workers=NUM] [--workers=NUM] [-w NUM]
+
+Examples:
+  $(basename "$0")                 # default 1 worker
+  $(basename "$0") 5               # positional (backward compatible)
+  $(basename "$0") workers=5
+  $(basename "$0") --workers=5
+  $(basename "$0") -w 5
+EOF
+}
+
+workers=1
+
+if [ $# -gt 0 ]; then
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      workers=*|--workers=*)
+        workers="${1#*=}"
+        shift
+        ;;
+      -w)
+        shift
+        [ $# -gt 0 ] || { echo "Missing value after -w"; usage; exit 1; }
+        workers="$1"
+        shift
+        ;;
+      -h|--help)
+        usage
+        exit 0
+        ;;
+      ''|*[!0-9]*)
+        echo "Unknown argument: $1"
+        usage
+        exit 1
+        ;;
+      *)
+        # pure numeric positional
+        workers="$1"
+        shift
+        ;;
+    esac
+  done
+fi
+
+if ! [[ "$workers" =~ ^[0-9]+$ ]] || [ "$workers" -lt 1 ]; then
+    echo "Invalid workers value: $workers"
+    usage
+    exit 1
+fi
+
+echo "[INFO] Building images (pulling latest bases)..."
+docker compose build --pull --parallel
+
+echo "[INFO] Starting stack with $workers worker instance(s)..."
+export WORKER_REPLICAS="$workers"
+docker compose up -d --scale worker="$workers"
+
+echo "[INFO] Current service status:"
+docker compose ps
+
+echo "[INFO] Logs: docker compose logs -f --tail=100"

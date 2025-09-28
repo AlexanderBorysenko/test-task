@@ -1,0 +1,18 @@
+<header class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div>
+        <h1 class="text-3xl font-semibold tracking-tight">Item processing dashboard</h1>
+        <p class="mt-1 text-sm text-slate-400">Create jobs and watch their statuses sync every 2 seconds.</p>
+    </div>
+    <button type="button"
+        class="inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-emerald-950 transition hover:bg-emerald-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 disabled:cursor-not-allowed disabled:opacity-60"
+        (click)="onCreateClick()" [disabled]="isCreating()">
+        @if (!isCreating()) {
+        <span>Add item</span>
+        } @else {
+        <span class="flex items-center gap-2">
+            <span class="h-2.5 w-2.5 animate-ping rounded-full bg-emerald-950/80"></span>
+            Creating…
+        </span>
+        }
+    </button>
+</header>
