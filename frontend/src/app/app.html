@@ -1,0 +1,14 @@
+<div class="min-h-screen bg-slate-950 text-slate-100">
+    <div class="mx-auto flex min-h-screen max-w-5xl flex-col gap-6 px-4 py-10">
+        <app-items-header [isCreating]="isCreating()" (createRequested)="addItem()" />
+
+        <app-items-metrics [total]="items().length" [pending]="pendingCount()" [done]="doneCount()" />
+
+        <app-items-table [items]="items()" [isInitialLoading]="isInitialLoading()" [lastUpdatedAt]="lastUpdatedAt()"
+            [error]="listError()" />
+
+        @if (createError(); as errorMessage) {
+        <app-inline-alert tone="error" [message]="errorMessage" />
+        }
+    </div>
+</div>

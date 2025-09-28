@@ -16,12 +16,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 public class ItemController {
     private final ItemService itemService;
 
-    @GetMapping("/")
+    @GetMapping()
     public List<Item> getAll() {
         return itemService.getAllItems();
     }
 
-    @PostMapping("/")
+    @PostMapping()
     public Item createItem() {
         return itemService.createItem();
     }

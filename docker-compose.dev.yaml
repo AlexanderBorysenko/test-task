@@ -3,12 +3,15 @@ version: "3.9"
 services:
     database:
         image: postgres:18
-        volumes:
-            - pgdata:/var/lib/postgresql/data
+        restart: unless-stopped
         environment:
             POSTGRES_DB: ${POSTGRES_DB}
             POSTGRES_USER: ${POSTGRES_USER}
             POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+        volumes:
+            - pgdata:/var/lib/postgresql/data
+        ports:
+            - "5432:5432"
         healthcheck:
             test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
             interval: 10s
@@ -18,12 +21,13 @@ services:
 
     rabbitmq:
         image: rabbitmq:4-management
-        ports:
-            - "15672:15672" # UI
-            - "5672:5672" # AMQP
+        restart: unless-stopped
         environment:
             RABBITMQ_USER: ${RABBITMQ_USER}
             RABBITMQ_PASS: ${RABBITMQ_PASS}
+        ports:
+            - "15672:15672"
+            - "5672:5672"
         healthcheck:
             test: [ "CMD", "rabbitmq-diagnostics", "ping" ]
             interval: 10s
@@ -34,7 +38,7 @@ services:
     backend:
         build:
             context: ./backend
-            dockerfile: Dockerfile
+            dockerfile: Dockerfile.dev
         environment:
             SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
             SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
@@ -43,6 +47,9 @@ services:
             RABBITMQ_PORT: ${RABBITMQ_PORT}
             RABBITMQ_USERNAME: ${RABBITMQ_USER}
             RABBITMQ_PASSWORD: ${RABBITMQ_PASS}
+        volumes:
+            - ./backend:/app
+            - maven_cache:/root/.m2
         depends_on:
             database:
                 condition: service_healthy
@@ -55,29 +62,38 @@ services:
     worker:
         build:
             context: ./worker
-            dockerfile: Dockerfile
+            dockerfile: Dockerfile.dev
         environment:
             RABBITMQ_HOST: ${RABBITMQ_HOST}
             RABBITMQ_PORT: ${RABBITMQ_PORT}
             RABBITMQ_USERNAME: ${RABBITMQ_USER}
             RABBITMQ_PASSWORD: ${RABBITMQ_PASS}
+        volumes:
+            - ./worker:/app
         depends_on:
             rabbitmq:
                 condition: service_healthy
         networks: [ app-net ]
+
     frontend:
         build:
             context: ./frontend
-            dockerfile: Dockerfile
+            dockerfile: Dockerfile.dev
+        volumes:
+            - ./frontend:/app
+            - frontend_node_modules:/app/node_modules
         depends_on:
             backend:
                 condition: service_started
         ports:
-            - "80:80"
+            - "4200:4200"
+            - "49153:49153"
         networks: [ app-net ]
 
 volumes:
     pgdata:
+    maven_cache:
+    frontend_node_modules:
 
 
 networks:
